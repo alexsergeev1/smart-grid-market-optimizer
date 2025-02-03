@@ -1,0 +1,5 @@
+FAST GRID DASHBOARD
+1. Extract fast_app.py and grid_dashboard.html into your smart-grid-market-optimizer folder.
+2. In that folder, run: .\.venv\Scripts\python.exe fast_app.py
+3. Browser: http://127.0.0.1:8765
+Press Ctrl+C to stop. No Streamlit used. Your optimizer.py stays unchanged.
