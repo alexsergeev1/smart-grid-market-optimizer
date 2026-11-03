@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Grid Market Optimizer</title>
+<style>
+:root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#e9f1fc;background:#090f1c;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}main{max-width:1500px;margin:auto;padding:36px 42px 44px}
+.header{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;margin-bottom:32px}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:700;color:#5df0bc;text-transform:uppercase}.h1{font-size:clamp(28px,3vw,42px);font-weight:750;margin:9px 0 9px;letter-spacing:-1px}.subtitle{color:#879bb7;font-size:14px;line-height:1.5}.pill{border:1px solid #315e54;background:#11352f;padding:9px 12px;border-radius:20px;color:#75ebbe;white-space:nowrap;font-size:12px}
+.layout{display:grid;grid-template-columns:280px minmax(0,1fr);gap:20px}.card{background:#111c2e;border:1px solid #243449;border-radius:14px;padding:23px}.side{display:flex;flex-direction:column;gap:21px}.side h2,.heading{margin:0;font-size:16px;font-weight:650}.field{margin:0}.field-head{display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;font-size:13px}.field-head output{font-weight:700;color:#65d9be}input[type=range]{width:100%;accent-color:#59d4b0;cursor:pointer}.bounds{display:flex;justify-content:space-between;color:#6f829f;font-size:11px;margin-top:5px}.tip{font-size:12px;color:#8092ad;line-height:1.6;border-top:1px solid #26364a;padding-top:16px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.metric{padding:20px 20px 18px}.label{font-size:12px;color:#97a9c3;margin-bottom:12px}.number{font-size:clamp(20px,2.2vw,31px);font-weight:700;letter-spacing:-1px;white-space:nowrap}.unit{color:#8196ae;font-size:12px;margin-top:7px}.charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.wide{grid-column:1/-1}.chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:16px}.small{font-size:12px;color:#879bb7}.bars{display:flex;flex-direction:column;gap:15px}.bar-row{display:grid;grid-template-columns:95px 1fr 62px;gap:15px;align-items:center;font-size:13px}.bar-track{height:12px;background:#1c3049;border-radius:8px;overflow:hidden}.bar{height:100%;width:0;background:#48c8a7;transition:width .16s}.gas{background:#4a93e6}.peaker{background:#f59f6b}.value{text-align:right;font-variant-numeric:tabular-nums}.gridline{stroke:#2a3a52;stroke-width:1}.axis{fill:#8497b2;font-size:11px}.line{fill:none;stroke:#5dd9b3;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}.marker{fill:#f2b07e;stroke:#111c2e;stroke-width:2}svg{width:100%;height:auto;display:block}.note{padding:14px 17px;border-radius:8px;background:#143a34;border:1px solid #275649;color:#a2f4d7;margin:0 0 19px;font-size:13px}.note.error{background:#3a2028;border-color:#87404d;color:#ffc2c8}.footer{color:#7087a5;font-size:11px;margin-top:20px;line-height:1.6}
+@media(max-width:1050px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.charts{grid-template-columns:1fr}.wide{grid-column:auto}}@media(max-width:760px){main{padding:18px}.layout{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.card{padding:17px}.number{font-size:24px}.header{flex-direction:column;gap:8px}.bar-row{grid-template-columns:90px 1fr 55px}}
+</style>
+</head>
+<body>
+<main>
+ <header class="header"><div><div class="eyebrow">Power systems · Economic dispatch</div><h1 class="h1">Smart Grid Market Optimizer</h1><div class="subtitle">A 2-bus power market model. Instant calculations — no server requests.</div></div><span class="pill" id="status">● Ready</span></header>
+ <section class="layout">
+  <aside class="card side"><h2>Grid controls</h2>
+   <div class="field"><div class="field-head"><label for="demand">Demand at Bus B</label><output id="demandText">80 MW</output></div><input id="demand" type="range" min="20" max="130" step="5" value="80"><div class="bounds"><span>20 MW</span><span>130 MW</span></div></div>
+   <div class="field"><div class="field-head"><label for="line">Line capacity</label><output id="lineText">55 MW</output></div><input id="line" type="range" min="0" max="120" step="5" value="55"><div class="bounds"><span>0 MW</span><span>120 MW</span></div></div>
+   <div class="field"><div class="field-head"><label for="solar">Solar available</label><output id="solarText">35 MW</output></div><input id="solar" type="range" min="0" max="35" step="5" value="35"><div class="bounds"><span>0 MW</span><span>35 MW</span></div></div>
+   <div class="tip">Gas at A: 70 MW max · $30/MWh<br>Solar at A: $5/MWh<br>Peaker at B: 80 MW max · $115/MWh</div>
+  </aside>
+  <div>
+   <div class="metrics">
+    <div class="card metric"><div class="label">Operating cost</div><div class="number" id="cost">—</div><div class="unit">USD / hour</div></div>
+    <div class="card metric"><div class="label">Congestion premium</div><div class="number" id="premium">—</div><div class="unit">USD / hour</div></div>
+    <div class="card metric"><div class="label">Transmission flow</div><div class="number" id="flow">—</div><div class="unit">Megawatts</div></div>
+    <div class="card metric"><div class="label">Bus B marginal price</div><div class="number" id="price">—</div><div class="unit">USD / MWh</div></div>
+   </div>
+   <div id="message" class="note">Calculating optimal dispatch…</div>
+   <div class="charts">
+    <section class="card wide"><div class="chart-head"><h2 class="heading">Optimal generation</h2><span class="small" id="total">—</span></div><div class="bars"><div class="bar-row"><span>Solar (A)</span><div class="bar-track"><div id="solarBar" class="bar"></div></div><span class="value" id="solarVal">—</span></div><div class="bar-row"><span>Gas (A)</span><div class="bar-track"><div id="gasBar" class="bar gas"></div></div><span class="value" id="gasVal">—</span></div><div class="bar-row"><span>Peaker (B)</span><div class="bar-track"><div id="peakerBar" class="bar peaker"></div></div><span class="value" id="peakerVal">—</span></div></div></section>
+    <section class="card"><div class="chart-head"><h2 class="heading">Cost vs. line capacity</h2><span class="small">USD/hour</span></div><div id="costChart"></div></section>
+    <section class="card"><div class="chart-head"><h2 class="heading">Marginal prices</h2><span class="small">USD/MWh</span></div><div id="priceChart"></div></section>
+   </div>
+   <div class="footer">Synthetic inputs · Linear economic dispatch · Illustrative marginal prices (at exact capacity boundaries, dual prices can be non-unique) · Not AC power flow · No real trading</div>
+  </div>
+ </section>
+</main>
+<script>
+const el=id=>document.getElementById(id),money=n=>'$'+Math.round(n).toLocaleString('en-US'),fmt=n=>Math.round(n*100)/100;
+function solve(demand,line,solar){
+ const flow=Math.min(demand,line,solar+70),peaker=demand-flow;
+ if(peaker>80)throw Error('Demand cannot be met with these limits');
+ const s=Math.min(solar,flow),g=flow-s,cost=s*5+g*30+peaker*115;
+ const a=flow===0?0:g===70&&flow<line?115:g>0?30:5;
+ const b=peaker>0||line<=flow?115:a;
+ return {demand_mw:demand,solar_mw:s,gas_mw:g,peaker_mw:peaker,flow_mw:flow,cost_usd_per_hour:cost,price_a_usd_mwh:a,price_b_usd_mwh:b};
+}
+function calculate(demand,line,solar){
+ const now=solve(demand,line,solar),baseline=solve(demand,Math.max(demand,105),solar),curve=[];
+ for(let cap=0;cap<=120;cap+=5){try{curve.push([cap,solve(demand,cap,solar).cost_usd_per_hour])}catch(e){}}
+ return {dispatch:now,premium:now.cost_usd_per_hour-baseline.cost_usd_per_hour,curve};
+}
+function lineChart(curve,selected,price){
+ const W=580,H=270,l=49,r=12,t=14,b=35,iw=W-l-r,ih=H-t-b;
+ if(!curve.length)return '<p class="small">No feasible solutions</p>';
+ const max=Math.ceil(Math.max(...curve.map(p=>p[1]))/1000)*1000||1000;
+ const x=n=>l+n/120*iw,y=n=>t+ih-(n/max)*ih;
+ const grids=[0,.25,.5,.75,1].map(v=>`<line class="gridline" x1="${l}" y1="${y(max*v)}" x2="${W-r}" y2="${y(max*v)}"/><text class="axis" x="${l-8}" y="${y(max*v)+4}" text-anchor="end">${(max*v/1000).toFixed(v?1:0)}k</text>`).join('');
+ const axes=[0,30,60,90,120].map(v=>`<text class="axis" x="${x(v)}" y="${H-12}" text-anchor="middle">${v}</text>`).join('');
+ const path=curve.map((p,i)=>`${i?'L':'M'}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(' ');
+ const point=curve.find(p=>p[0]===selected);
+ const dot=point?`<circle class="marker" cx="${x(point[0])}" cy="${y(point[1])}" r="6"><title>${point[0]} MW: ${money(point[1])}/h</title></circle>`:'';
+ return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Operating cost by transmission limit">${grids}${axes}<path d="${path}" class="line"/>${dot}</svg>`;
+}
+function pricesChart(a,b){
+ const W=580,H=270,l=56,r=14,t=14,bottom=38,ih=H-t-bottom,top=Math.max(130,a,b,0)*1.06;
+ let svg='';
+ for(let i=0;i<=4;i++){let v=top*i/4,y=t+ih-i*ih/4;svg+=`<line class="gridline" x1="${l}" y1="${y}" x2="${W-r}" y2="${y}"/><text class="axis" x="${l-7}" y="${y+4}" text-anchor="end">${Math.round(v)}</text>`}
+ for(const [name,value,x,color] of [['Bus A',a,180,'#4a93e6'],['Bus B',b,390,'#59d4b0']]){const h=Math.max(0,value)/top*ih;svg+=`<rect x="${x-43}" y="${t+ih-h}" width="86" height="${h}" rx="4" fill="${color}"/><text class="axis" x="${x}" y="${H-10}" text-anchor="middle">${name}</text><text x="${x}" y="${Math.max(12,t+ih-h-8)}" text-anchor="middle" fill="#e9f1fc" font-size="12">$${fmt(value)}</text>`}
+ return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Marginal electricity prices at both buses">${svg}</svg>`;
+}
+function display(data,selected){
+ const x=data.dispatch;
+ el('cost').textContent=money(x.cost_usd_per_hour);el('premium').textContent=money(data.premium);
+ el('flow').textContent=fmt(x.flow_mw)+' MW';el('price').textContent='$'+fmt(x.price_b_usd_mwh);
+ el('total').textContent=fmt(x.demand_mw)+' MW supplied';
+ for(const [id,n] of [['solar',x.solar_mw],['gas',x.gas_mw],['peaker',x.peaker_mw]]){el(id+'Bar').style.width=(n/Math.max(80,x.demand_mw)*100)+'%';el(id+'Val').textContent=fmt(n)+' MW'}
+ el('costChart').innerHTML=lineChart(data.curve,selected,x.cost_usd_per_hour);
+ el('priceChart').innerHTML=pricesChart(x.price_a_usd_mwh,x.price_b_usd_mwh);
+ el('message').className='note';el('message').textContent='Optimal dispatch found · '+fmt(x.flow_mw)+' MW transmitted from Bus A to Bus B';
+}
+function reset(){
+ for(const id of ['cost','premium','flow','price','total','solarVal','gasVal','peakerVal'])el(id).textContent='—';
+ for(const id of ['solarBar','gasBar','peakerBar'])el(id).style.width='0%';
+ for(const id of ['costChart','priceChart'])el(id).innerHTML='';
+}
+function update(){
+ const start=performance.now(),d=+el('demand').value,l=+el('line').value,s=+el('solar').value;
+ for(const id of ['demand','line','solar'])el(id+'Text').textContent=el(id).value+' MW';
+ try{display(calculate(d,l,s),l);el('status').textContent='● Instant · '+Math.max(1,Math.round(performance.now()-start))+' ms'}
+ catch(e){reset();el('message').className='note error';el('message').textContent=e.message;el('status').textContent='● Infeasible inputs'}
+}
+for(const id of ['demand','line','solar'])el(id).addEventListener('input',update);
+update();
+</script>
+</body>
+</html>
