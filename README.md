@@ -1,5 +1,12 @@
 # Smart Grid & Energy Market Optimizer
 
+
+
+## Live Demo
+https://alexsergeev1.github.io/smart-grid-market-optimizer/
+
+
+
 A Python linear-optimization prototype that minimizes electricity generation cost while respecting generator and transmission limits.
 
 **Status:** Version 1: economic dispatch and interactive visualization. AI forecasting, battery scheduling, and full network power-flow modeling are planned, **not yet implemented**.
